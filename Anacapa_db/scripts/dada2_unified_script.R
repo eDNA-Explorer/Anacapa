@@ -14,9 +14,8 @@ if (length(args) != 5) {
 
 barC = args[1]  #barcode target
 odirpath = args[2]  #path to the fastq files
-barC_length = args[3] # expected seq length of the barcode.
-paired_or_not = args[4] # type of reads- should be "paired", "forward", or "reverse
-min_asv_abundance = as.numeric(args[5]) # minimum number of times an ASV needs to appear to be kept in output files
+paired_or_not = args[3] # type of reads- should be "paired", "forward", or "reverse
+min_asv_abundance = as.numeric(args[4]) # minimum number of times an ASV needs to appear to be kept in output files
 
 # confirm that the user has specified paired_or_not properly
 if (!(paired_or_not %in% c("paired", "forward", "reverse"))) {
@@ -44,44 +43,8 @@ if (file.access(path, mode = 2) != 0) {
   stop("Please make sure that you have write access to the supplied path.")
 }
 
-# Manage packages -----
-
-#1. Download packages from CRAN
-.cran_packages  <-  c("ggplot2", "plyr", "dplyr","seqRFLP", "reshape2", "tibble", "devtools", "Matrix", "mgcv")
-.inst <- .cran_packages %in% installed.packages()
-if (any(!.inst)) {
-  install.packages(.cran_packages[!.inst], repos = "http://cran.rstudio.com/")
-}
-
-# 2. Download packages from biocLite
-.bioc_packages <- c("phyloseq", "genefilter", "impute", "Biostrings")
-.inst <- .bioc_packages %in% installed.packages()
-if (any(!.inst)) {
-  source("http://bioconductor.org/biocLite.R")
-  biocLite(.bioc_packages[!.inst])
-}
-
-.dada_version = "1.6.0"
-.dada_version_gh = "v1.6"
-if("dada2" %in% installed.packages()){
-  if(packageVersion("dada2") == .dada_version) {
-    cat("congrats, right version of dada2")
-  } else {
-    devtools::install_github("benjjneb/dada2", ref=.dada_version_gh)
-  }
-}
-
-if(!("dada2" %in% installed.packages())){
-  # if the user doesn't have dada2 installed, install version 1.6 from github
-  devtools::install_github("benjjneb/dada2", ref=.dada_version_gh)
-}
 
 library("dada2")
-cat(paste("dada2 package version:", packageVersion("dada2")))
-if(packageVersion("dada2") != '1.6.0') {
-  stop("Please make sure you have dada version ", .dada_version, " installed")
-}
-
 library("seqRFLP")
 library("plyr")
 library("Biostrings")
@@ -333,9 +296,7 @@ pairedsum_unmerged_table$lengthF <- nchar(gsub("[a-z]","",pairedsum_unmerged_tab
 pairedsum_unmerged_table$lengthR <- nchar(gsub("[a-z]","",pairedsum_unmerged_table$sequenceR))
 pairedsum_unmerged_table$totalseq <- pairedsum_unmerged_table$lengthF + pairedsum_unmerged_table$lengthR
 
-# add expected length of amplicon
-pairedsum_unmerged_table$keep[pairedsum_unmerged_table$totalseq>=barC_length] <- FALSE
-pairedsum_unmerged_table$keep[pairedsum_unmerged_table$totalseq<barC_length] <- TRUE
+pairedsum_unmerged_table$keep <- TRUE
 
 # Get the reverse complement of the R sequence
 pairedsum_unmerged_table$sequenceRc <- sapply(sapply(sapply(pairedsum_unmerged_table$sequenceR, DNAString), reverseComplement), toString)

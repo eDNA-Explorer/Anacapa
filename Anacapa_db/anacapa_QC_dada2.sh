@@ -9,7 +9,6 @@ DB=""
 UN=""
 FP=""
 RP=""
-ADPT=""
 ILLTYPE=""
 GUNZIPED=""
 CTADE=""
@@ -20,10 +19,10 @@ FETRIM=""
 RETRIM=""
 MINTIMES_ASV=""
 MIN_MERGE_LENGTH=""
-LOCALMODE="FALSE"
+LOCALMODE="TRUE"
 HPC_HEADER=""
 
-while getopts "h?:i:o:d:u:f:r:a:t:l?:g?:c:p:q:m:x:y:b:e:k:" opt; do
+while getopts "h?:i:o:d:u:f:r:t:l?:g?:c:p:q:m:x:y:b:e:k:" opt; do
     case $opt in
         h) HELP="TRUE"
         ;;
@@ -38,8 +37,6 @@ while getopts "h?:i:o:d:u:f:r:a:t:l?:g?:c:p:q:m:x:y:b:e:k:" opt; do
         f) FP="$OPTARG"  # need forward reads for cutadapt
         ;;
         r) RP="$OPTARG"  # need reverse reads for cutadapt
-        ;;
-        a) ADPT="$OPTARG"  # need adapter for cutadapt
         ;;
         t) ILLTYPE="$OPTARG"  #need to know trim params cutadapt
         ;;
@@ -80,7 +77,7 @@ esac
 
 if [ "${HELP}" = "TRUE" ]
 then
-  printf "<<< Anacapa: Sequence QC and ASV Parsing >>>\n\nThe purpose of these script is to process raw fastq or fastq.gz files from an Illumina HiSeq or MiSeq.  It removes 3' and 5' sequencing artifacts and 5' metabarcode primers (cutadapt), removes low quality base pairs and short reads (fastX-toolkit), sorts reads by 3' metabarcode primers prior to trimming (cutadapt), and uses dada2 to denoise, dereplicate, merge and remove chimeric reads\n\n	For successful implementation \n		1. Make sure you have all of the dependencies and correct paths in the anacapa_config.sh file\n		2. Add the Metabarcode locus specific CRUX reference libraries to the Anacapa_db folder\n		3. All parameters can be modified using the arguments below.  Alternatively, all parameters can be altered in the anacapa_vars.sh folder\n\nArguments:\n- Required for either mode:\n	-i	path to .fastq.gz files, if files are already compressed use flag -g (see below)\n	-o	path to output directory\n	-d	path to Anacapa_db\n	-a	Illumina adapter type: nextera, truseq, or NEBnext\n	-t	Illumina Platform: HiSeq (2 x 150) or MiSeq ( >= 2 x 250)\n    \n- Optional:\n 	-u	If running on an HPC (e.g. UCLA's Hoffman2 cluster), this is your username: e.g. eecurd\n	-l	If running locally: -l  (no argument needed)\n 	-f	path to file with forward primers in fasta format \n    		e.g.	>16s\n    			GTGYCAGCMGCCGCGGTAA\n			>18S\n			GTACACACCGCCCGTC\n	-r	path to file with forward primers in fasta format \n    		e.g. 	>16s\n    			GGACTACNVGGGTWTCTAAT\n    			>18S\n			TGATCCTTCTGCAGGTTCACCTAC\n	-g	If .fastq read are not compressed: -g (no argument need)\n	-c	To modify the allowed cutadapt error for 3' adapter and 5' primer adapter trimming: 0.0 to 1.0 (default 0.3)\n	-p	To modify the allowed cutadapt error 3' primer sorting and trimming: 0.0 to 1.0 (default 0.3)\n	-q	To modify the minimum quality score allowed: 0 - 40 (default 35)\n	-m	To modify the minimum length after quality trimming: 0 - 300 (default 100)\n	-x	To modify the additional 5' trimming of forward reads: 0 - 300 (default HiSeq 10, default MiSeq 20)\n	-y	To modify the additional 5' trimming of reverse reads: 0 - 300 (default HiSeq 25, default MiSeq 50)\n	-b	To modify the number of occurrences required to keep an ASV: 0 - any integer (default 0)\n	-e	File path to a list of minimum length(s) reqired for paired F and R reads to overlap \n		(length of the locus - primer length + 20 bp). The user should take into account variability in amplicon \n		region (e.g.The amplicon size for 18S 1389f-1510r is ~260 +/- 50 bp) and make appropriate allowances.\n		e.g.	LENGTH_16S="235"\n			LENGTH_18S="200"\n	-k	Path to file with alternate HPC job submission parameters:  \n		default file = ~/Anacapa_db/scripts/Hoffman2_HPC_header.sh\n		modifiable template file = ~/Anacapa_db/scripts/anacapa_qsub_templates.sh\n\n\n-Other:\n	-h	Shows program usage then quits\n\n\n\n"
+  printf "<<< Anacapa: Sequence QC and ASV Parsing >>>\n\nThe purpose of these script is to process raw fastq or fastq.gz files from an Illumina HiSeq or MiSeq.  It removes 3' and 5' sequencing artifacts and 5' metabarcode primers (cutadapt), removes low quality base pairs and short reads (fastX-toolkit), sorts reads by 3' metabarcode primers prior to trimming (cutadapt), and uses dada2 to denoise, dereplicate, merge and remove chimeric reads\n\n	For successful implementation \n		1. Make sure you have all of the dependencies and correct paths in the anacapa_config.sh file\n		2. Add the Metabarcode locus specific CRUX reference libraries to the Anacapa_db folder\n		3. All parameters can be modified using the arguments below.  Alternatively, all parameters can be altered in the anacapa_vars.sh folder\n\nArguments:\n- Required for either mode:\n	-i	path to .fastq.gz files, if files are already compressed use flag -g (see below)\n	-o	path to output directory\n	-d	path to Anacapa_db\n	-t	Illumina Platform: HiSeq (2 x 150) or MiSeq ( >= 2 x 250)\n    \n- Optional:\n 	-u	If running on an HPC (e.g. UCLA's Hoffman2 cluster), this is your username: e.g. eecurd\n	-l	If running locally: -l  (no argument needed)\n 	-f	path to file with forward primers in fasta format \n    		e.g.	>16s\n    			GTGYCAGCMGCCGCGGTAA\n			>18S\n			GTACACACCGCCCGTC\n	-r	path to file with forward primers in fasta format \n    		e.g. 	>16s\n    			GGACTACNVGGGTWTCTAAT\n    			>18S\n			TGATCCTTCTGCAGGTTCACCTAC\n	-g	If .fastq read are not compressed: -g (no argument need)\n	-c	To modify the allowed cutadapt error for 3' adapter and 5' primer adapter trimming: 0.0 to 1.0 (default 0.3)\n	-p	To modify the allowed cutadapt error 3' primer sorting and trimming: 0.0 to 1.0 (default 0.3)\n	-q	To modify the minimum quality score allowed: 0 - 40 (default 35)\n	-m	To modify the minimum length after quality trimming: 0 - 300 (default 100)\n	-x	To modify the additional 5' trimming of forward reads: 0 - 300 (default HiSeq 10, default MiSeq 20)\n	-y	To modify the additional 5' trimming of reverse reads: 0 - 300 (default HiSeq 25, default MiSeq 50)\n	-b	To modify the number of occurrences required to keep an ASV: 0 - any integer (default 0)\n	-e	File path to a list of minimum length(s) reqired for paired F and R reads to overlap \n		(length of the locus - primer length + 20 bp). The user should take into account variability in amplicon \n		region (e.g.The amplicon size for 18S 1389f-1510r is ~260 +/- 50 bp) and make appropriate allowances.\n		e.g.	LENGTH_16S="235"\n			LENGTH_18S="200"\n	-k	Path to file with alternate HPC job submission parameters:  \n		default file = ~/Anacapa_db/scripts/Hoffman2_HPC_header.sh\n		modifiable template file = ~/Anacapa_db/scripts/anacapa_qsub_templates.sh\n\n\n-Other:\n	-h	Shows program usage then quits\n\n\n\n"
   exit
 else
   echo ""
@@ -142,7 +139,11 @@ fi
 ######
 
 #Check that user has all of the default flags set
-if [[ -e ${IN} && ! -z ${OUT} && -e ${DB} && ! -z ${ADPT} && ! -z ${ILLTYPE} ]];
+echo $IN
+echo $OUT
+echo $DB
+echo $ILLTYPE
+if [[ -e ${IN} && ! -z ${OUT} && -e ${DB} && ! -z ${ILLTYPE} ]];
 then
   echo "Required Arguments Given"
   echo ""
@@ -156,6 +157,7 @@ fi
 # location of the config and var files
 source $DB/scripts/anacapa_vars.sh  # edit to change variables and parameters
 source $DB/scripts/anacapa_config.sh # edit for proper configuration
+
 DEF_MIN_LENGTH="${DB}/metabarcode_loci_min_merge_length.txt"
 
 if [[ -e ${HPC_HEADER} ]];
@@ -235,10 +237,19 @@ echo "QC: 1) Run cutadapt to remove 5'sequncing adapters and 3'primers + sequenc
 mkdir -p ${OUT}/Run_info/cutadapt_primers_and_adapters
 
 echo " "
-echo "Generating Primer and Primer + Adapter files for cutadapt steps.  Your adapter type is ${ADPT}."
-cp ${DB}/adapters_and_PrimAdapt_rc/*_${ADPT}_*_adapter.txt ${OUT}/Run_info/cutadapt_primers_and_adapters  # make a copy of the appropriate adapter file in your ourput directory
-python ${DB}/scripts/anacapa_format_primers_cutadapt.py ${ADPT} ${FP:=$FP_PATH} ${RP:=$RP_PATH} ${OUT}/Run_info/cutadapt_primers_and_adapters  # given your adapter and primer sets, make cutadapt readable fasta files for trimming adapter / primer reads
+echo "Generating Primer and Primer + Adapter files for cutadapt steps."
+cp ${DB}/adapters_and_PrimAdapt_rc/*_truseq_*_adapter.txt ${OUT}/Run_info/cutadapt_primers_and_adapters  # make a copy of the appropriate adapter file in your ourput directory
+cp ${DB}/adapters_and_PrimAdapt_rc/*_nextera_*_adapter.txt ${OUT}/Run_info/cutadapt_primers_and_adapters  # make a copy of the appropriate adapter file in your ourput directory
 
+cat ${OUT}/Run_info/cutadapt_primers_and_adapters/g_nextera_Forward_adapter.txt >> ${OUT}/Run_info/cutadapt_primers_and_adapters/g_Forward_adapter.txt
+sed -i "s/F_adapt/F_adapt_nextera/" ${OUT}/Run_info/cutadapt_primers_and_adapters/g_Forward_adapter.txt
+echo "" >> ${OUT}/Run_info/cutadapt_primers_and_adapters/g_Forward_adapter.txt
+cat ${OUT}/Run_info/cutadapt_primers_and_adapters/g_truseq_Forward_adapter.txt >> ${OUT}/Run_info/cutadapt_primers_and_adapters/g_Forward_adapter.txt
+
+cat ${OUT}/Run_info/cutadapt_primers_and_adapters/G_nextera_Reverse_adapter.txt >> ${OUT}/Run_info/cutadapt_primers_and_adapters/G_Reverse_adapter.txt
+
+
+python ${DB}/scripts/anacapa_format_primers_cutadapt.py ${FP:=$FP_PATH} ${RP:=$RP_PATH} ${OUT}/Run_info/cutadapt_primers_and_adapters  # given your adapter and primer sets, make cutadapt readable fasta files for trimming adapter / primer reads
 
 # now use the formated cutadapt primer file to trim fastq reads
 mkdir -p ${OUT}/QC/cutadapt_fastq
@@ -255,7 +266,9 @@ do
  echo ${j} "..."
  # this step removes all primers and adapters with the exception of the 5' forward and reverse primers.  These are needed in a later step to sort reads by primer set.  Leaving 3' primers and 5' or 3' adapters acn affect read merging and taxonomic assignment.
  # this cutadapt command allows a certain amount of error/missmatch (-e) between the query (seqeuncing read) and the primer and adapter.  It searches for and trims off all of the 5' forward adapter (-g) and the 3' reverse complement reverse primer / reverse complement reverse adapter (-a) or the 5' reverse adapter (-G) and the 3' reverse complement forward primer / reverse complement forward adapter (-A).  It processes read pairs, and results in two files one for each read pair.
- ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -f ${FILE_TYPE_QC1} --minimum-length 1 -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} -o ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -p ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq ${str1}_1.fastq ${str1}_2.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
+  echo ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -f ${FILE_TYPE_QC1} -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} -o ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -p ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq ${str1}_1.fastq ${str1}_2.fastq
+
+ ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -f ${FILE_TYPE_QC1} -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} -o ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -p ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq ${str1}_1.fastq ${str1}_2.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
  rm ${str1}_1.fastq # remove intermediate files
  rm ${str1}_2.fastq # remove intermediate files
  # stringent quality fileter to get rid of the junky reads. It mostly chops the lowquality reads off of the ends. See the documentation for details. The default average quality score for retained bases is 35 and the minimum length is 100.  Any reads that do not meet that criteria are removed
@@ -331,9 +344,9 @@ do
      date
    fi
 done
-rm -r ${OUT}/QC/fastq # remove intermediate directories
-rm -r ${OUT}/QC/cutadapt_fastq # remove intermediate directories
-rm -r ${OUT}/QC
+# rm -r ${OUT}/QC/fastq # remove intermediate directories
+# rm -r ${OUT}/QC/cutadapt_fastq # remove intermediate directories
+# rm -r ${OUT}/QC
 ###############################
 # Make sure unassembled reads are still paired and submit dada2 jobs
 ###############################
