@@ -270,3 +270,33 @@ done
 # rm -r ${OUT}/QC/fastq # remove intermediate directories
 # rm -r ${OUT}/QC/cutadapt_fastq # remove intermediate directories
 # rm -r ${OUT}/QC
+
+###############################
+# Make sure unassembled reads are still paired and submit dada2 jobs
+###############################
+
+echo " "
+echo "Process metabarcode reads for with dada2"
+for j in `ls ${OUT}/`
+do
+ if [[ "${j}" != "QC" && "${j}" != "Run_info" ]]; # ignore non-metabarcode folders...
+ then
+    #make folders for the metabarcode specific output of dada2 and bowtie2
+  echo ""
+  echo "${j}"
+	mkdir -p ${OUT}/${j}/${j}dada2_out
+
+  echo "Running Dada2"
+  printf "#!/bin/bash\n ${RUNNER} ${DB}/scripts/run_dada2.sh -o ${OUT} -d ${DB} -m ${j} -t paired -b ${MINTIMES_ASV:=$MIN_ASV_ABUNDANCE} \n" > ${OUT}/Run_info/run_scripts/${j}_dada2_paired_job.sh
+  printf "#!/bin/bash\n ${RUNNER} ${DB}/scripts/run_dada2.sh -o ${OUT} -d ${DB} -m ${j} -t forward -b ${MINTIMES_ASV:=$MIN_ASV_ABUNDANCE} \n" > ${OUT}/Run_info/run_scripts/${j}_dada2_F_job.sh
+  printf "#!/bin/bash\n ${RUNNER} ${DB}/scripts/run_dada2.sh -o ${OUT} -d ${DB} -m ${j} -t reverse -b ${MINTIMES_ASV:=$MIN_ASV_ABUNDANCE} \n" > ${OUT}/Run_info/run_scripts/${j}_dada2_R_job.sh
+  ${RUNNER} ${OUT}/Run_info/run_scripts/${j}_dada2_paired_job.sh
+  date
+  ${RUNNER} ${OUT}/Run_info/run_scripts/${j}_dada2_F_job.sh
+  date
+  ${RUNNER} ${OUT}/Run_info/run_scripts/${j}_dada2_R_job.sh
+  date
+ fi
+done
+
+echo "All done"

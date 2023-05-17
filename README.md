@@ -1,5 +1,9 @@
 This repo contains a modified version of Anacapa toolkit (specifically just QC) used by the CALeDNA project
 
+```
+conda create -n crux27 -c bioconda python=2.7 r-essentials r-base cutadapt fastx_toolkit
+```
+
 ### Preparing the anacapa_config.sh file
 
 Before running the __Anacapa__ toolkit you need to double check the anacapa_config.sh file and update the appropriate paths. For running local mode on a personal machine or virutual box set CUTADAPT ="cutadapt",and  MUSCLE="muscle"; replace all other values to "". Double check that all dependencies work in the terminal. This is the key for success.
