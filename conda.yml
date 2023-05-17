@@ -186,4 +186,3 @@ dependencies:
     - tinydb==4.7.0
     - wcwidth==0.2.5
     - wrapt==1.14.1
-prefix: /home/max/miniconda3
