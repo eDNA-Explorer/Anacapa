@@ -57,10 +57,25 @@ seq = ''
 for line in F_infile:
     if line[0] == ">":
         header = line.strip()
-        outfile.write(header + "_rc" + "\n")
+        outfile.write(header + "_rc_nextera" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq)+ "$" + "\n")
+        outfile.write(rComp(seq)+ adapter_Frc_nextera + "\n")
+outfile.close()
+F_infile.close()
+
+### make reverse complement primers with seq$ -> a
+F_infile = open(sys.argv[1], "r")
+outfile = open(prim + "A_forward_rc_primers.txt", "w+") # forwards with ^seq
+header = ''
+seq = ''
+for line in F_infile:
+    if line[0] == ">":
+        header = line.strip()
+        outfile.write(header + "_rc_truseq" + "\n")
+    else:
+        seq = line.strip()
+        outfile.write(rComp(seq) + adapter_Frc_truseq + "\n")
 outfile.close()
 F_infile.close()
 
@@ -75,7 +90,7 @@ for line in F_infile:
         outfile.write(header + "_rc_nextera" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq) + adapter_Frc_nextera  + "\n")
+        outfile.write(rComp(seq) + adapter_Frc_nextera + "\n")
 outfile.close()
 F_infile.close()
 
@@ -90,7 +105,7 @@ for line in F_infile:
         outfile.write(header + "_rc_truseq" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq) + adapter_Frc_truseq  + "\n")
+        outfile.write(rComp(seq) + adapter_Frc_truseq + "\n")
 outfile.close()
 F_infile.close()
 
@@ -121,10 +136,25 @@ seq = ''
 for line in R_infile:
     if line[0] == ">":
         header = line.strip()
-        outfile.write(header + "_rc" + "\n")
+        outfile.write(header + "_rc_nextera" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq)+ "$" + "\n")
+        outfile.write(rComp(seq) + adapter_Rrc_nextera + "\n")
+outfile.close()
+R_infile.close()
+
+### make reverse complement primers with seq$ -> a
+R_infile = open(sys.argv[2], "r")
+outfile = open(prim + "a_reverse_rc_primers.txt", "w+") # forwards with ^seq
+header = ''
+seq = ''
+for line in R_infile:
+    if line[0] == ">":
+        header = line.strip()
+        outfile.write(header + "_rc_truseq" + "\n")
+    else:
+        seq = line.strip()
+        outfile.write(rComp(seq) + adapter_Rrc_truseq + "\n")
 outfile.close()
 R_infile.close()
 
