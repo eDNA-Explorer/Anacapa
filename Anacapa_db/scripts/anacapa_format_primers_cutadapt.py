@@ -36,7 +36,7 @@ def rComp(read):
 ####################################
 
 ### make regular primers with ^seq -> g
-outfile = open(prim + "g_forward_primers.txt", "a") # forwards with ^seq
+outfile = open(prim + "g_forward_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in F_infile:
@@ -49,7 +49,7 @@ for line in F_infile:
 outfile.close()
 F_infile.close()
 
-outfile = open(prim + "g_forward_primers.txt", "a") # forwards with ^seq
+outfile = open(prim + "g_forward_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in F_infile:
@@ -64,7 +64,7 @@ F_infile.close()
 
 ### make reverse complement primers with seq$ -> a
 F_infile = open(sys.argv[1], "r")
-outfile = open(prim + "A_forward_rc_primers.txt", "a") # forwards with ^seq
+outfile = open(prim + "A_forward_rc_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in F_infile:
@@ -79,7 +79,7 @@ F_infile.close()
 
 ### make reverse complement primers with seq$ -> a
 F_infile = open(sys.argv[1], "r")
-outfile = open(prim + "A_forward_rc_primers.txt", "a") # forwards with ^seq
+outfile = open(prim + "A_forward_rc_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in F_infile:
@@ -94,7 +94,7 @@ F_infile.close()
 
 ### make adapter reverse complement primers with seq+adpter+$ ->
 F_infile = open(sys.argv[1], "r")
-outfile = open(prim_adapt + "A_Forward_PrimAdapt_rc.txt", "a") # forwards with ^seq
+outfile = open(prim_adapt + "A_Forward_PrimAdapt_rc.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in F_infile:
@@ -109,7 +109,7 @@ F_infile.close()
 
 ### make adapter reverse complement primers with seq+adpter+$ ->
 F_infile = open(sys.argv[1], "r")
-outfile = open(prim_adapt + "A_Forward_PrimAdapt_rc.txt", "a") # forwards with ^seq
+outfile = open(prim_adapt + "A_Forward_PrimAdapt_rc.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in F_infile:
@@ -128,7 +128,7 @@ F_infile.close()
 ####################################
 
 ### make regular primers with ^seq -> G
-outfile = open(prim+ "G_reverse_primers.txt", "a") # forwards with ^seq
+outfile = open(prim+ "G_reverse_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in R_infile:
@@ -142,7 +142,7 @@ outfile.close()
 R_infile.close()
 
 ### make regular primers with ^seq -> G
-outfile = open(prim+ "G_reverse_primers.txt", "a") # forwards with ^seq
+outfile = open(prim+ "G_reverse_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in R_infile:
@@ -157,7 +157,7 @@ R_infile.close()
 
 ### make reverse complement primers with seq$ -> a
 R_infile = open(sys.argv[2], "r")
-outfile = open(prim + "a_reverse_rc_primers.txt", "a") # forwards with ^seq
+outfile = open(prim + "a_reverse_rc_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in R_infile:
@@ -172,7 +172,7 @@ R_infile.close()
 
 ### make reverse complement primers with seq$ -> a
 R_infile = open(sys.argv[2], "r")
-outfile = open(prim + "a_reverse_rc_primers.txt", "a") # forwards with ^seq
+outfile = open(prim + "a_reverse_rc_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in R_infile:
@@ -187,7 +187,7 @@ R_infile.close()
 
 ### make reverse complement primers with seq$ -> a
 R_infile = open(sys.argv[2], "r")
-outfile = open(prim_adapt + "a_Reverse_PrimAdapt_rc.txt", "a") # forwards with ^seq
+outfile = open(prim_adapt + "a_Reverse_PrimAdapt_rc.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in R_infile:
@@ -203,7 +203,7 @@ R_infile.close()
 
 ### make reverse complement primers with seq$ -> a
 R_infile = open(sys.argv[2], "r")
-outfile = open(prim_adapt + "a_Reverse_PrimAdapt_rc.txt", "a") # forwards with ^seq
+outfile = open(prim_adapt + "a_Reverse_PrimAdapt_rc.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
 for line in R_infile:
