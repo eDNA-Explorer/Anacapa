@@ -49,6 +49,7 @@ for line in F_infile:
 outfile.close()
 F_infile.close()
 
+F_infile = open(sys.argv[1], "r")
 outfile = open(prim + "g_forward_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
@@ -142,6 +143,7 @@ outfile.close()
 R_infile.close()
 
 ### make regular primers with ^seq -> G
+R_infile = open(sys.argv[2], "r")
 outfile = open(prim+ "G_reverse_primers.txt", "a+") # forwards with ^seq
 header = ''
 seq = ''
