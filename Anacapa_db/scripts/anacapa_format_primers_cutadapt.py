@@ -36,30 +36,16 @@ def rComp(read):
 ####################################
 
 ### make regular primers with ^seq -> g
-outfile = open(prim + "g_forward_primers.txt", "a+") # forwards with ^seq
+outfile = open(prim + "g_forward_primers.txt", "w+") # forwards with ^seq
 header = ''
 seq = ''
 for line in F_infile:
     if line[0] == ">":
-        header = line.strip()
-        outfile.write(header + "_nextera" + "\n")
+    	header = line.strip() 
+        outfile.write(header + "\n")  
     else:
-        seq = line.strip()
-        outfile.write("^" + seq + adapter_Frc_nextera + "\n")
-outfile.close()
-F_infile.close()
-
-F_infile = open(sys.argv[1], "r")
-outfile = open(prim + "g_forward_primers.txt", "a+") # forwards with ^seq
-header = ''
-seq = ''
-for line in F_infile:
-    if line[0] == ">":
-        header = line.strip()
-        outfile.write(header + "_truseq" + "\n")
-    else:
-        seq = line.strip()
-        outfile.write("^" + seq + adapter_Frc_truseq + "\n")
+    	seq = line.strip()
+    	outfile.write("^" + seq + "\n")
 outfile.close()
 F_infile.close()
 
@@ -129,31 +115,16 @@ F_infile.close()
 ####################################
 
 ### make regular primers with ^seq -> G
-outfile = open(prim+ "G_reverse_primers.txt", "a+") # forwards with ^seq
+outfile = open(prim+ "G_reverse_primers.txt", "w+") # forwards with ^seq
 header = ''
 seq = ''
 for line in R_infile:
     if line[0] == ">":
-        header = line.strip()
-        outfile.write(header + "_nextera" + "\n")
+    	header = line.strip() 
+        outfile.write(header + "\n")  
     else:
-        seq = line.strip()
-        outfile.write("^" + seq + adapter_Rrc_nextera + "\n")
-outfile.close()
-R_infile.close()
-
-### make regular primers with ^seq -> G
-R_infile = open(sys.argv[2], "r")
-outfile = open(prim+ "G_reverse_primers.txt", "a+") # forwards with ^seq
-header = ''
-seq = ''
-for line in R_infile:
-    if line[0] == ">":
-        header = line.strip()
-        outfile.write(header + "_truseq" + "\n")
-    else:
-        seq = line.strip()
-        outfile.write("^" + seq + adapter_Rrc_truseq + "\n")
+    	seq = line.strip()
+    	outfile.write("^" + seq + "\n")
 outfile.close()
 R_infile.close()
 
