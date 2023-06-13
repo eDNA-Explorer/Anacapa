@@ -180,7 +180,9 @@ echo "" >> ${OUT}/Run_info/cutadapt_primers_and_adapters/g_Forward_adapter.txt
 cat ${OUT}/Run_info/cutadapt_primers_and_adapters/g_truseq_Forward_adapter.txt >> ${OUT}/Run_info/cutadapt_primers_and_adapters/g_Forward_adapter.txt
 
 cat ${OUT}/Run_info/cutadapt_primers_and_adapters/G_nextera_Reverse_adapter.txt >> ${OUT}/Run_info/cutadapt_primers_and_adapters/G_Reverse_adapter.txt
-
+sed -i "s/R_adapt/R_adapt_nextera/" ${OUT}/Run_info/cutadapt_primers_and_adapters/G_Reverse_adapter.txt
+echo "" >> ${OUT}/Run_info/cutadapt_primers_and_adapters/G_Reverse_adapter.txt
+cat ${OUT}/Run_info/cutadapt_primers_and_adapters/G_truseq_Reverse_adapter.txt >> ${OUT}/Run_info/cutadapt_primers_and_adapters/G_Reverse_adapter.txt
 
 python ${DB}/scripts/anacapa_format_primers_cutadapt.py ${FP:=$FP_PATH} ${RP:=$RP_PATH} ${OUT}/Run_info/cutadapt_primers_and_adapters  # given your adapter and primer sets, make cutadapt readable fasta files for trimming adapter / primer reads
 

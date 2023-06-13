@@ -60,7 +60,7 @@ for line in F_infile:
         outfile.write(header + "_rc_nextera" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq)+ adapter_Frc_nextera + "\n")
+        outfile.write(rComp(seq)+ '$' + "\n")
 outfile.close()
 F_infile.close()
 
@@ -75,7 +75,7 @@ for line in F_infile:
         outfile.write(header + "_rc_truseq" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq) + adapter_Frc_truseq + "\n")
+        outfile.write(rComp(seq) + '$' + "\n")
 outfile.close()
 F_infile.close()
 
@@ -139,7 +139,7 @@ for line in R_infile:
         outfile.write(header + "_rc_nextera" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq) + adapter_Rrc_nextera + "\n")
+        outfile.write(rComp(seq) + '$' + "\n")
 outfile.close()
 R_infile.close()
 
@@ -154,7 +154,7 @@ for line in R_infile:
         outfile.write(header + "_rc_truseq" + "\n")
     else:
         seq = line.strip()
-        outfile.write(rComp(seq) + adapter_Rrc_truseq + "\n")
+        outfile.write(rComp(seq) + '$' + "\n")
 outfile.close()
 R_infile.close()
 
