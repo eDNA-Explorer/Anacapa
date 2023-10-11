@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 ### this script is run as follows
 # ~/Anacapa_db/scripts/run_dada2.sh -o <out_dir> -d <database_directory> -m <metabarcode name> -b <min ASV read count acceptable>
 OUT=""

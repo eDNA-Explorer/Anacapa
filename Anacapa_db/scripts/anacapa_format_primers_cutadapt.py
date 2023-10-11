@@ -41,11 +41,11 @@ header = ''
 seq = ''
 for line in F_infile:
     if line[0] == ">":
-    	header = line.strip() 
+        header = line.strip() 
         outfile.write(header + "\n")  
     else:
-    	seq = line.strip()
-    	outfile.write("^" + seq + "\n")
+        seq = line.strip()
+        outfile.write("^" + seq + "\n")
 outfile.close()
 F_infile.close()
 
@@ -120,11 +120,11 @@ header = ''
 seq = ''
 for line in R_infile:
     if line[0] == ">":
-    	header = line.strip() 
+        header = line.strip() 
         outfile.write(header + "\n")  
     else:
-    	seq = line.strip()
-    	outfile.write("^" + seq + "\n")
+        seq = line.strip()
+        outfile.write("^" + seq + "\n")
 outfile.close()
 R_infile.close()
 
