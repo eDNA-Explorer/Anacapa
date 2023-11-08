@@ -145,15 +145,19 @@ echo "Preprocessing: 1) Generate an md5sum file"  # user can check for file corr
 md5sum ${IN}/*fastq.gz > ${OUT}/Run_info/raw_fastq.md5sum
 date
 echo "Preprocessing: 2) Change file suffixes"
+is_gzipped() {
+  local file_path="$1"
+  local magic_number=$(hexdump -n 2 -v -e '/1 "%02x"' "$file_path")
+  [[ "$magic_number" == "1f8b" ]]
+}
+
 for str in `ls ${IN}/*_${suffix1}`
 do
   str1=${str%*_${suffix1}}
   i=${str1#${IN}/}
   mod=${i//_/-}
-  # check if file is gzipped
-  file_type_1=$(file -b "${IN}/${i}_${suffix1}")
-  file_type_2=$(file -b "${IN}/${i}_${suffix2}")
-  if [[ "${file_type_1}" == *"gzip compressed data"* ]]; then
+  # check if file1 is gzipped
+  if is_gzipped "${IN}/${i}_${suffix1}"; then
     # file is gzipped, copy directly
     cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
   else
@@ -164,7 +168,9 @@ do
     # copy
     cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
   fi
-  if [[ "${file_type_2}" == *"gzip compressed data"* ]]; then
+
+  # check if file2 is gzipped
+  if is_gzipped "${IN}/${i}_${suffix2}"; then
     # file is gzipped, copy directly
     cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
   else
