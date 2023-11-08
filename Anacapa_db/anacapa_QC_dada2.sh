@@ -156,31 +156,33 @@ do
   str1=${str%*_${suffix1}}
   i=${str1#${IN}/}
   mod=${i//_/-}
-  # check if file1 is gzipped
-  if is_gzipped "${IN}/${i}_${suffix1}"; then
-    # file is gzipped, copy directly
-    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
-  else
-    # file is not gzipped
-    # rm ".gz" suffix and gzip the file.
-    mv ${IN}/${i}_${suffix1} ${IN}/${i}_${suffix1%.gz}
-    gzip ${IN}/${i}_${suffix1%.gz}
-    # copy
-    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
-  fi
+  cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+  cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+  # # check if file1 is gzipped
+  # if is_gzipped "${IN}/${i}_${suffix1}"; then
+  #   # file is gzipped, copy directly
+  #   cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+  # else
+  #   # file is not gzipped
+  #   # rm ".gz" suffix and gzip the file.
+  #   mv ${IN}/${i}_${suffix1} ${IN}/${i}_${suffix1%.gz}
+  #   gzip ${IN}/${i}_${suffix1%.gz}
+  #   # copy
+  #   cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+  # fi
 
-  # check if file2 is gzipped
-  if is_gzipped "${IN}/${i}_${suffix2}"; then
-    # file is gzipped, copy directly
-    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
-  else
-    # file is not gzipped
-    # rm ".gz" suffix and gzip the file.
-    mv ${IN}/${i}_${suffix2} ${IN}/${i}_${suffix2%.gz}
-    gzip ${IN}/${i}_${suffix2%.gz}
-    # copy
-    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
-  fi
+  # # check if file2 is gzipped
+  # if is_gzipped "${IN}/${i}_${suffix2}"; then
+  #   # file is gzipped, copy directly
+  #   cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+  # else
+  #   # file is not gzipped
+  #   # rm ".gz" suffix and gzip the file.
+  #   mv ${IN}/${i}_${suffix2} ${IN}/${i}_${suffix2%.gz}
+  #   gzip ${IN}/${i}_${suffix2%.gz}
+  #   # copy
+  #   cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+  # fi
 done
 date
 
