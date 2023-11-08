@@ -150,8 +150,31 @@ do
   str1=${str%*_${suffix1}}
   i=${str1#${IN}/}
   mod=${i//_/-}
-  cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
-  cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+  # check if file is gzipped
+  file_type_1=$(file -b "${IN}/${i}_${suffix1}")
+  file_type_2=$(file -b "${IN}/${i}_${suffix2}")
+  if [[ "${file_type_1}" == *"gzip compressed data"* ]]; then
+    # file is gzipped, copy directly
+    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+  else
+    # file is not gzipped
+    # rm ".gz" suffix and gzip the file.
+    mv ${IN}/${i}_${suffix1} ${IN}/${i}_${suffix1%.gz}
+    gzip ${IN}/${i}_${suffix1%.gz}
+    # copy
+    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+  fi
+  if [[ "${file_type_2}" == *"gzip compressed data"* ]]; then
+    # file is gzipped, copy directly
+    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+  else
+    # file is not gzipped
+    # rm ".gz" suffix and gzip the file.
+    mv ${IN}/${i}_${suffix2} ${IN}/${i}_${suffix2%.gz}
+    gzip ${IN}/${i}_${suffix2%.gz}
+    # copy
+    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+  fi
 done
 date
 
