@@ -19,7 +19,7 @@ RETRIM=""
 MINTIMES_ASV=""
 HPC_HEADER=""
 
-while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
+while getopts "h?:i:o:d:f:r:g?:p:q:m:b:k:" opt; do
     case $opt in
         h) HELP="TRUE"
         ;;
@@ -29,25 +29,17 @@ while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
         ;;
         d) DB="$OPTARG"  # path to Anacapa_db
         ;;
-        u) UN="$OPTARG"  # need username for submitting sequencing job
-        ;;
         f) FP="$OPTARG"  # need forward reads for cutadapt
         ;;
         r) RP="$OPTARG"  # need reverse reads for cutadapt
         ;;
         g) GUNZIPED="TRUE" #reads not compressed
         ;;
-        c) CTADE="$OPTARG"  # cutadapt error for 3' adapter and 5' primer adapter trimming
-        ;;
-        p) PCTADE="$OPTARG"  # cutadapt error 3' primer sorting and trimming
+        p) PRIMER="$OPTARG" # primer name
         ;;
         q) QUALS="$OPTARG"  # Minimum Quality score
         ;;
         m) MILEN="$OPTARG"  # Minimum Length after trimming
-        ;;
-        x) FETRIM="$OPTARG"  # Additional 5' trimming forward read
-        ;;
-        y) RETRIM="$OPTARG"  # Additional 5' trimming reverse read
         ;;
         b) MINTIMES_ASV="$OPTARG" # number of occurances required to keep ASV
         ;;
@@ -242,11 +234,11 @@ do
   # sort by metabarcode but run additional trimming.  It makes a differnce in merging reads in dada2.  Trimming varies based on seqeuncing platform.
   echo "forward..."
    # use cut adapt to search 5' end of forward reads for forward primers.  These are then sorted by primer name.  We do an additional trimming step analagous to the trimming step in the dada2 tutorial.  Because these a forward reads an tend to be higher quality we only trim  20 bp from the end by default for the MiSeq (longer Reads). Users can modify all parameters in the vars file.
-  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${F_PRIM} -u -${FETRIM:=$MS_F_TRIM} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/primer_sort/{name}_${j}_Paired_1.fastq  ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_1.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
+  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${F_PRIM} -u -${FETRIM:=$MS_F_TRIM} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/primer_sort/{PRIMER}_${j}_Paired_1.fastq  ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_1.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
   echo "check"
   echo "reverse..."
   # use cut adapt to search 5' end of reverse reads for reverse primers.  These are then sorted by primer name.  We do an additional trimming step analagous to the trimming step in the dada2 tutorial.  Because these a reverse reads an tend to be lower quality we only trim  50 bp from the end by default for the MiSeq (longer Reads). Users can modify all parameters in the vars file.
-  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${R_PRIM}  -u -${RETRIM:=$MS_R_TRIM} -o ${OUT}/QC/cutadapt_fastq/primer_sort/{name}_${j}_Paired_2.fastq   ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_2.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
+  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${R_PRIM}  -u -${RETRIM:=$MS_R_TRIM} -o ${OUT}/QC/cutadapt_fastq/primer_sort/{PRIMER}_${j}_Paired_2.fastq   ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_2.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
   echo "check"
   rm ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_1.fastq # remove intermediate files
   rm ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_2.fastq # remove intermediate files
