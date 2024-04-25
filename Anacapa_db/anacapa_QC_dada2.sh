@@ -6,7 +6,6 @@ HELP=""
 IN=""
 OUT=""
 DB=""
-UN=""
 FP=""
 RP=""
 GUNZIPED=""
@@ -17,9 +16,8 @@ MILEN=""
 FETRIM=""
 RETRIM=""
 MINTIMES_ASV=""
-HPC_HEADER=""
 
-while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
+while getopts "h?:i:o:d:f:r:g?:c:p:q:m:x:y:b:t:" opt; do
     case $opt in
         h) HELP="TRUE"
         ;;
@@ -28,8 +26,6 @@ while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
         o) OUT="$OPTARG" # path to desired Anacapa output
         ;;
         d) DB="$OPTARG"  # path to Anacapa_db
-        ;;
-        u) UN="$OPTARG"  # need username for submitting sequencing job
         ;;
         f) FP="$OPTARG"  # need forward reads for cutadapt
         ;;
@@ -51,7 +47,7 @@ while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
         ;;
         b) MINTIMES_ASV="$OPTARG" # number of occurances required to keep ASV
         ;;
-        k) HPC_HEADER="$OPTARG" # path to custom HPC job submission header
+        t) METADATA="$OPTARG"
         ;;
     esac
 done
