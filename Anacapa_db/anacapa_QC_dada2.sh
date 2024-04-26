@@ -104,6 +104,14 @@ then
 fi
 ######
 
+### Check that user has a valid metadata file
+if [ -f "$METADATA" ] && [[ "$METADATA" == *.csv ]]; then
+    echo "Metadata file exists and is a CSV file."
+else
+    echo "Metadata file does not exist or is not a CSV file."
+    exit
+fi
+
 #Check that user has all of the default flags set
 if [[ -e ${IN} && ! -z ${OUT} && -e ${DB} ]];
 then
