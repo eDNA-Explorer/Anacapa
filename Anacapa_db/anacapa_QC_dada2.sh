@@ -155,38 +155,59 @@ is_gzipped() {
   [[ "$magic_number" == "1f8b" ]]
 }
 
-for str in `ls ${IN}/*_${suffix1}`
+# Read the file names into an array
+readarray -t filename_pairs < <(awk -F',' '
+    BEGIN {OFS=","} 
+    NR==1 {
+        for (i=1; i<=NF; i++) {
+            if ($i == "Fastq Forward Reads Filename") f_col=i;
+            if ($i == "Fastq Reverse Reads Filename") r_col=i;
+        }
+    }
+    NR > 1 {
+        print $f_col, $r_col;
+    }
+' "$METADATA")
+
+for pair in "${filename_pairs[@]}"
 do
-  str1=${str%*_${suffix1}}
-  i=${str1#${IN}/}
-  mod=${i//_/-}
-  # check if file1 is gzipped
-  file_type_1=$(file -b "${IN}/${i}_${suffix1}")
-  file_type_2=$(file -b "${IN}/${i}_${suffix2}")
-  if [[ "${file_type_1}" == *"gzip"* ]]; then
+  echo "Processing pair: $pair"
+  IFS=',' read -r forward_file reverse_file <<< "$pair"
+  # remove file extensions
+  forward_file_wo_ext="${forward_file%.*}"
+  reverse_file_wo_ext="${reverse_file%.*}"
+  # replace all underscores
+  forward_file_mod="${forward_file_wo_ext//_/-}_1.fastq.gz"
+  reverse_file_mod="${reverse_file_wo_ext//_/-}_2.fastq.gz"
+
+  # check if files are gzipped
+  forward_file_type=$(file -b "${IN}/${forward_file}")
+  reverse_file_type=$(file -b "${IN}/${reverse_file}")
+
+  if [[ "${forward_file_type}" == *"gzip"* ]]; then
     # file is gzipped, copy directly
-    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+    cp ${IN}/${forward_file} ${OUT}/QC/fastq/${forward_file_mod}
   else
     # file is not gzipped
     # rm ".gz" suffix and gzip the file.
-    echo "File ${IN}/${i}_${suffix1} is not gzipped. Removing '.gz' suffix and compressing file..."
-    mv ${IN}/${i}_${suffix1} ${IN}/${i}_${suffix1%.gz}
-    gzip ${IN}/${i}_${suffix1%.gz}
+    echo "File ${IN}/${forward_file} is not gzipped. Removing '.gz' suffix and compressing file..."
+    mv ${IN}/${forward_file} ${IN}/${forward_file%.gz}
+    gzip ${IN}/${forward_file%.gz}
     # copy
-    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+    cp ${IN}/${forward_file} ${OUT}/QC/fastq/${forward_file_mod}
     echo "Done."
   fi
-  if [[ "${file_type_2}" == *"gzip"* ]]; then
+  if [[ "${reverse_file_type}" == *"gzip"* ]]; then
     # file is gzipped, copy directly
-    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+    cp ${IN}/${reverse_file} ${OUT}/QC/fastq/${reverse_file_mod}
   else
     # file is not gzipped
     # rm ".gz" suffix and gzip the file.
-    echo "File ${IN}/${i}_${suffix2} is not gzipped. Removing '.gz' suffix and compressing file..."
-    mv ${IN}/${i}_${suffix2} ${IN}/${i}_${suffix2%.gz}
-    gzip ${IN}/${i}_${suffix2%.gz}
+    echo "File ${IN}/${reverse_file} is not gzipped. Removing '.gz' suffix and compressing file..."
+    mv ${IN}/${reverse_file} ${IN}/${reverse_file%.gz}
+    gzip ${IN}/${reverse_file%.gz}
     # copy
-    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+    cp ${IN}/${reverse_file} ${OUT}/QC/fastq/${reverse_file_mod}
     echo "Done."
   fi
 done
