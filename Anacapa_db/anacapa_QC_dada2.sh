@@ -16,6 +16,8 @@ MILEN=""
 FETRIM=""
 RETRIM=""
 MINTIMES_ASV=""
+PHIX_REF="/opt/bbmap/resources/phix174_ill.ref.fa.gz"
+CONTAMINANTS="/opt/bbmap/resources/adapters.fa"
 
 while getopts "h?:i:o:d:f:r:g?:c:p:q:m:x:y:b:t:" opt; do
     case $opt in
@@ -110,6 +112,14 @@ if [ -f "$METADATA" ] && [[ "$METADATA" == *.csv ]]; then
 else
     echo "Metadata file does not exist or is not a CSV file."
     exit
+fi
+
+# Check that PHIX_REF and CONTAMINANTS files exists
+if [ -f "$PHIX_REF" ] && [ -f "$CONTAMINANTS" ]; then
+  echo "PHIX_REF and CONTAMINANTS file exist."
+else
+  echo "PHIX_REF and/or CONTAMINANTS file do not exist."
+  exit
 fi
 
 #Check that user has all of the default flags set
@@ -242,6 +252,10 @@ cat ${OUT}/Run_info/cutadapt_primers_and_adapters/G_truseq_Reverse_adapter.txt >
 python ${DB}/scripts/anacapa_format_primers_cutadapt.py ${FP:=$FP_PATH} ${RP:=$RP_PATH} ${OUT}/Run_info/cutadapt_primers_and_adapters  # given your adapter and primer sets, make cutadapt readable fasta files for trimming adapter / primer reads
 
 # now use the formated cutadapt primer file to trim fastq reads
+mkdir -p ${OUT}/QC/fastp_cleaned
+mkdir -p ${OUT}/QC/fastp_logs
+mkdir -p ${OUT}/QC/bbduk_cleaned
+mkdir -p ${OUT}/QC/bbduk_logs
 mkdir -p ${OUT}/QC/cutadapt_fastq
 mkdir -p ${OUT}/QC/cutadapt_fastq/untrimmed
 mkdir -p ${OUT}/QC/cutadapt_fastq/primer_sort
@@ -249,16 +263,49 @@ mkdir -p ${OUT}/Run_info/cutadapt_out
 ###
 for str in `ls ${OUT}/QC/fastq/*_1.fastq.gz`
 do
-  # first chop of the 5' adapter and 3' adapter and primer combo (reverse complemented)
   str1=${str%_*}
   j=${str1#${OUT}/QC/fastq/}
   echo " "
   echo ${j} "..."
-  # this step removes all primers and adapters with the exception of the 5' forward and reverse primers.  These are needed in a later step to sort reads by primer set.  Leaving 3' primers and 5' or 3' adapters acn affect read merging and taxonomic assignment.
+  
+  # fastp processing
+  echo "Running fastp for quality and adapter trimming..."
+  fastp -i ${str1}_1.fastq.gz -I ${str1}_2.fastq.gz \
+        -o ${OUT}/QC/fastp_cleaned/${j}_clean_1.fastq.gz -O ${OUT}/QC/fastp_cleaned/${j}_clean_2.fastq.gz \
+        -h ${OUT}/QC/fastp_logs/fastp_report.html -j ${OUT}/QC/fastp_logs/fastp_report.json \
+        --detect_adapter_for_pe \
+        --thread 8 \
+        --cut_right \
+        --cut_right_window_size 4 --cut_right_mean_quality ${QUALS:=$MIN_QUAL} \
+        --cut_tail \
+        --cut_tail_window_size 4 --cut_tail_mean_quality ${QUALS:=$MIN_QUAL} \
+        --low_complexity_filter \
+        --complexity_threshold ${QUALS:=$MIN_QUAL} \
+        --correction \
+        --length_required ${MILEN:=$MIN_LEN} \
+        --html \
+        --json
+  # remove intermediate files
+  rm ${str1}_1.fastq.gz ${str1}_2.fastq.gz
+  
+  # bbmap processing for further quality control
+  echo "Running bbmap for additional error correction and quality filtering..."
+  bbduk.sh in1=${OUT}/QC/fastp_cleaned/${j}_clean_1.fastq.gz in2=${OUT}/QC/fastp_cleaned/${j}_clean_2.fastq.gz \
+          out1=${OUT}/QC/bbduk_cleaned/${j}_clean_1.fastq.gz out2=${OUT}/QC/bbduk_cleaned/${j}_clean_2.fastq.gz \
+          ref=${PHIX_REF},${CONTAMINANTS} \
+          ktrim=r k=23 mink=11 hdist=1 tpe tbo \
+          qtrim=r trimq=30 \
+          minlen=50 \
+          maxns=1 \
+          -Xmx4g stats=${OUT}/QC/bbduk_logs/bbmap_stats.txt
+  # remove intermediate files
+  rm ${OUT}/QC/fastp_cleaned/${j}_clean_1.fastq.gz ${OUT}/QC/fastp_cleaned/${j}_clean_2.fastq.gz
+  # chop off the 5' adapter and 3' adapter and primer combo (reverse complemented)
+  # this step removes all primers and adapters with the exception of the 5' forward and reverse primers.  These are needed in a later step to sort reads by primer set.  Leaving 3' primers and 5' or 3' adapters can affect read merging and taxonomic assignment.
   # this cutadapt command allows a certain amount of error/missmatch (-e) between the query (seqeuncing read) and the primer and adapter.  It searches for and trims off all of the 5' forward adapter (-g) and the 3' reverse complement reverse primer / reverse complement reverse adapter (-a) or the 5' reverse adapter (-G) and the 3' reverse complement forward primer / reverse complement forward adapter (-A).  It processes read pairs, and results in two files one for each read pair.
-  ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -p ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq ${str1}_1.fastq.gz ${str1}_2.fastq.gz >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
-  rm ${str1}_1.fastq.gz # remove intermediate files
-  rm ${str1}_2.fastq.gz # remove intermediate files
+  ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -p ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq ${OUT}/QC/bbduk_cleaned/${j}_clean_1.fastq.gz ${OUT}/QC/bbduk_cleaned/${j}_clean_2.fastq.gz >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
+  rm ${OUT}/QC/bbduk_cleaned/${j}_clean_1.fastq.gz # remove intermediate files
+  rm ${OUT}/QC/bbduk_cleaned/${j}_clean_2.fastq.gz # remove intermediate files
   # stringent quality filter to get rid of the junky reads. It mostly chops the lowquality reads off of the ends. See the documentation for details. The default average quality score for retained bases is 35 and the minimum length is 100.  Any reads that do not meet that criteria are removed
   fastq_quality_trimmer -t ${QUALS:=$MIN_QUAL} -l ${MILEN:=$MIN_LEN}  -i ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -o ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_1.fastq -Q33 #trim pair one
   rm ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq # remove intermediate files
