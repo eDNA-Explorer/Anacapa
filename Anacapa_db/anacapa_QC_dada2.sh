@@ -6,7 +6,6 @@ HELP=""
 IN=""
 OUT=""
 DB=""
-UN=""
 FP=""
 RP=""
 GUNZIPED=""
@@ -17,9 +16,10 @@ MILEN=""
 FETRIM=""
 RETRIM=""
 MINTIMES_ASV=""
-HPC_HEADER=""
+PHIX_REF="/opt/bbmap/resources/phix174_ill.ref.fa.gz"
+CONTAMINANTS="/opt/bbmap/resources/adapters.fa"
 
-while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
+while getopts "h?:i:o:d:f:r:g?:c:p:q:m:x:y:b:t:" opt; do
     case $opt in
         h) HELP="TRUE"
         ;;
@@ -28,8 +28,6 @@ while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
         o) OUT="$OPTARG" # path to desired Anacapa output
         ;;
         d) DB="$OPTARG"  # path to Anacapa_db
-        ;;
-        u) UN="$OPTARG"  # need username for submitting sequencing job
         ;;
         f) FP="$OPTARG"  # need forward reads for cutadapt
         ;;
@@ -51,7 +49,7 @@ while getopts "h?:i:o:d:u:f:r:g?:c:p:q:m:x:y:b:k:" opt; do
         ;;
         b) MINTIMES_ASV="$OPTARG" # number of occurances required to keep ASV
         ;;
-        k) HPC_HEADER="$OPTARG" # path to custom HPC job submission header
+        t) METADATA="$OPTARG"
         ;;
     esac
 done
@@ -108,6 +106,22 @@ then
 fi
 ######
 
+### Check that user has a valid metadata file
+if [ -f "$METADATA" ] && [[ "$METADATA" == *.csv ]]; then
+    echo "Metadata file exists and is a CSV file."
+else
+    echo "Metadata file does not exist or is not a CSV file."
+    exit
+fi
+
+# Check that PHIX_REF and CONTAMINANTS files exists
+if [ -f "$PHIX_REF" ] && [ -f "$CONTAMINANTS" ]; then
+  echo "PHIX_REF and CONTAMINANTS file exist."
+else
+  echo "PHIX_REF and/or CONTAMINANTS file do not exist."
+  exit
+fi
+
 #Check that user has all of the default flags set
 if [[ -e ${IN} && ! -z ${OUT} && -e ${DB} ]];
 then
@@ -151,40 +165,73 @@ is_gzipped() {
   [[ "$magic_number" == "1f8b" ]]
 }
 
-for str in `ls ${IN}/*_${suffix1}`
+# Read the file names into an array
+readarray -t filename_pairs < <(awk -F',' '
+    BEGIN {OFS=","} 
+    NR==1 {
+        for (i=1; i<=NF; i++) {
+            if ($i == "Fastq Forward Reads Filename") f_col=i;
+            if ($i == "Fastq Reverse Reads Filename") r_col=i;
+        }
+    }
+    NR > 1 {
+        print $f_col, $r_col;
+    }
+' "$METADATA")
+
+declare -a updated_filename_pairs
+for pair in "${filename_pairs[@]}"
 do
-  str1=${str%*_${suffix1}}
-  i=${str1#${IN}/}
-  mod=${i//_/-}
-  # check if file1 is gzipped
-  file_type_1=$(file -b "${IN}/${i}_${suffix1}")
-  file_type_2=$(file -b "${IN}/${i}_${suffix2}")
-  if [[ "${file_type_1}" == *"gzip"* ]]; then
+  echo "Processing pair: $pair"
+  IFS=',' read -r forward_file reverse_file <<< "$pair"
+  # remove file extensions
+  forward_file_wo_ext=$forward_file
+  reverse_file_wo_ext=$reverse_file
+  while [[ "$forward_file_wo_ext" == *.* ]]; do
+    forward_file_wo_ext=$(basename "$forward_file_wo_ext" .${forward_file_wo_ext##*.})
+  done
+  while [[ "$reverse_file_wo_ext" == *.* ]]; do
+    reverse_file_wo_ext=$(basename "$reverse_file_wo_ext" .${reverse_file_wo_ext##*.})
+  done
+  # replace all underscores
+  forward_file_mod="${forward_file_wo_ext//_/-}_1.fastq.gz"
+  reverse_file_mod="${reverse_file_wo_ext//_/-}_2.fastq.gz"
+
+  # check if files are gzipped
+  forward_file_type=$(file -b "${IN}/${forward_file}")
+  reverse_file_type=$(file -b "${IN}/${reverse_file}")
+
+  if [[ "${forward_file_type}" == *"gzip"* ]]; then
     # file is gzipped, copy directly
-    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+    cp ${IN}/${forward_file} ${OUT}/QC/fastq/${forward_file_mod}
   else
     # file is not gzipped
     # rm ".gz" suffix and gzip the file.
-    echo "File ${IN}/${i}_${suffix1} is not gzipped. Removing '.gz' suffix and compressing file..."
-    mv ${IN}/${i}_${suffix1} ${IN}/${i}_${suffix1%.gz}
-    gzip ${IN}/${i}_${suffix1%.gz}
+    echo "File ${IN}/${forward_file} is not gzipped. Removing '.gz' suffix and compressing file..."
+    mv ${IN}/${forward_file} ${IN}/${forward_file%.gz}
+    gzip ${IN}/${forward_file%.gz}
     # copy
-    cp ${IN}/${i}_${suffix1} ${OUT}/QC/fastq/${mod}_1.fastq.gz
+    cp ${IN}/${forward_file} ${OUT}/QC/fastq/${forward_file_mod}
     echo "Done."
   fi
-  if [[ "${file_type_2}" == *"gzip"* ]]; then
+  if [[ "${reverse_file_type}" == *"gzip"* ]]; then
     # file is gzipped, copy directly
-    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+    cp ${IN}/${reverse_file} ${OUT}/QC/fastq/${reverse_file_mod}
   else
     # file is not gzipped
     # rm ".gz" suffix and gzip the file.
-    echo "File ${IN}/${i}_${suffix2} is not gzipped. Removing '.gz' suffix and compressing file..."
-    mv ${IN}/${i}_${suffix2} ${IN}/${i}_${suffix2%.gz}
-    gzip ${IN}/${i}_${suffix2%.gz}
+    echo "File ${IN}/${reverse_file} is not gzipped. Removing '.gz' suffix and compressing file..."
+    mv ${IN}/${reverse_file} ${IN}/${reverse_file%.gz}
+    gzip ${IN}/${reverse_file%.gz}
     # copy
-    cp ${IN}/${i}_${suffix2} ${OUT}/QC/fastq/${mod}_2.fastq.gz
+    cp ${IN}/${reverse_file} ${OUT}/QC/fastq/${reverse_file_mod}
     echo "Done."
   fi
+
+  # Update filename_pairs with new locations
+  updated_filename_pairs+=("${OUT}/QC/fastq/${forward_file_mod},${OUT}/QC/fastq/${reverse_file_mod}")
+  # Now, replace the original filename_pairs with the updated_filename_pairs
+  filename_pairs=("${updated_filename_pairs[@]}")
 done
 date
 
@@ -217,39 +264,81 @@ cat ${OUT}/Run_info/cutadapt_primers_and_adapters/G_truseq_Reverse_adapter.txt >
 python ${DB}/scripts/anacapa_format_primers_cutadapt.py ${FP:=$FP_PATH} ${RP:=$RP_PATH} ${OUT}/Run_info/cutadapt_primers_and_adapters  # given your adapter and primer sets, make cutadapt readable fasta files for trimming adapter / primer reads
 
 # now use the formated cutadapt primer file to trim fastq reads
+mkdir -p ${OUT}/QC/fastp_cleaned
+mkdir -p ${OUT}/QC/fastp_logs
+mkdir -p ${OUT}/QC/bbduk_cleaned
+mkdir -p ${OUT}/QC/bbduk_logs
 mkdir -p ${OUT}/QC/cutadapt_fastq
 mkdir -p ${OUT}/QC/cutadapt_fastq/untrimmed
 mkdir -p ${OUT}/QC/cutadapt_fastq/primer_sort
 mkdir -p ${OUT}/Run_info/cutadapt_out
 ###
-for str in `ls ${OUT}/QC/fastq/*_1.fastq.gz`
+for pair in "${filename_pairs[@]}"
 do
-  # first chop of the 5' adapter and 3' adapter and primer combo (reverse complemented)
-  str1=${str%_*}
-  j=${str1#${OUT}/QC/fastq/}
-  echo " "
-  echo ${j} "..."
-  # this step removes all primers and adapters with the exception of the 5' forward and reverse primers.  These are needed in a later step to sort reads by primer set.  Leaving 3' primers and 5' or 3' adapters acn affect read merging and taxonomic assignment.
+  echo "Processing pair: $pair"
+  IFS=',' read -r forward_file reverse_file <<< "$pair"
+  j1=${forward_file%_*}
+  j1=${j1#${OUT}/QC/fastq/}
+  j2=${reverse_file%_*}
+  j2=${j2#${OUT}/QC/fastq/}
+  echo ${j1} "..."
+  echo ${j2} "..."
+  
+  # fastp processing
+  echo "Running fastp for quality and adapter trimming..."
+  fastp -i ${forward_file} -I ${reverse_file} \
+        -o ${OUT}/QC/fastp_cleaned/${j1}_clean_1.fastq.gz -O ${OUT}/QC/fastp_cleaned/${j2}_clean_2.fastq.gz \
+        -h ${OUT}/QC/fastp_logs/fastp_report.html -j ${OUT}/QC/fastp_logs/fastp_report.json \
+        --detect_adapter_for_pe \
+        --thread 8 \
+        --cut_right \
+        --cut_right_window_size 4 --cut_right_mean_quality ${QUALS:=$MIN_QUAL} \
+        --cut_tail \
+        --cut_tail_window_size 4 --cut_tail_mean_quality ${QUALS:=$MIN_QUAL} \
+        --low_complexity_filter \
+        --complexity_threshold ${QUALS:=$MIN_QUAL} \
+        --correction \
+        --length_required ${MILEN:=$MIN_LEN} \
+        --html \
+        --json
+  # remove intermediate files
+  rm ${forward_file} ${reverse_file}
+  
+  # bbmap processing for further quality control
+  echo "Running bbmap for additional error correction and quality filtering..."
+  bbduk.sh in1=${OUT}/QC/fastp_cleaned/${j1}_clean_1.fastq.gz in2=${OUT}/QC/fastp_cleaned/${j2}_clean_2.fastq.gz \
+          out1=${OUT}/QC/bbduk_cleaned/${j1}_clean_1.fastq.gz out2=${OUT}/QC/bbduk_cleaned/${j2}_clean_2.fastq.gz \
+          ref=${PHIX_REF},${CONTAMINANTS} \
+          ktrim=r k=23 mink=11 hdist=1 tpe tbo \
+          qtrim=r trimq=30 \
+          minlen=50 \
+          maxns=1 \
+          -Xmx4g stats=${OUT}/QC/bbduk_logs/bbmap_stats.txt
+  # remove intermediate files
+  rm ${OUT}/QC/fastp_cleaned/${j1}_clean_1.fastq.gz ${OUT}/QC/fastp_cleaned/${j2}_clean_2.fastq.gz
+  # chop off the 5' adapter and 3' adapter and primer combo (reverse complemented)
+  # this step removes all primers and adapters with the exception of the 5' forward and reverse primers.  These are needed in a later step to sort reads by primer set.  Leaving 3' primers and 5' or 3' adapters can affect read merging and taxonomic assignment.
   # this cutadapt command allows a certain amount of error/missmatch (-e) between the query (seqeuncing read) and the primer and adapter.  It searches for and trims off all of the 5' forward adapter (-g) and the 3' reverse complement reverse primer / reverse complement reverse adapter (-a) or the 5' reverse adapter (-G) and the 3' reverse complement forward primer / reverse complement forward adapter (-A).  It processes read pairs, and results in two files one for each read pair.
-  ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -p ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq ${str1}_1.fastq.gz ${str1}_2.fastq.gz >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
-  rm ${str1}_1.fastq.gz # remove intermediate files
-  rm ${str1}_2.fastq.gz # remove intermediate files
-  # stringent quality filter to get rid of the junky reads. It mostly chops the lowquality reads off of the ends. See the documentation for details. The default average quality score for retained bases is 35 and the minimum length is 100.  Any reads that do not meet that criteria are removed
-  fastq_quality_trimmer -t ${QUALS:=$MIN_QUAL} -l ${MILEN:=$MIN_LEN}  -i ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq -o ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_1.fastq -Q33 #trim pair one
-  rm ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_1.fastq # remove intermediate files
-  fastq_quality_trimmer -t ${QUALS:=$MIN_QUAL} -l ${MILEN:=$MIN_LEN}  -i ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq -o ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_2.fastq -Q33 #trim pair 2
-  rm ${OUT}/QC/cutadapt_fastq/untrimmed/${j}_Paired_2.fastq # remove intermediate files
-  # sort by metabarcode but run additional trimming.  It makes a differnce in merging reads in dada2.  Trimming varies based on seqeuncing platform.
+  ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/${j1}_qcPaired_1.fastq -p ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq ${OUT}/QC/bbduk_cleaned/${j1}_clean_1.fastq.gz ${OUT}/QC/bbduk_cleaned/${j2}_clean_2.fastq.gz >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
+  rm ${OUT}/QC/bbduk_cleaned/${j1}_clean_1.fastq.gz # remove intermediate files
+  rm ${OUT}/QC/bbduk_cleaned/${j2}_clean_2.fastq.gz # remove intermediate files
+  # sort by metabarcode but run additional trimming.  It makes a differnce in merging reads in dada2.  Trimming varies based on sequencing platform.
   echo "forward..."
    # use cut adapt to search 5' end of forward reads for forward primers.  These are then sorted by primer name.  We do an additional trimming step analagous to the trimming step in the dada2 tutorial.  Because these a forward reads an tend to be higher quality we only trim  20 bp from the end by default for the MiSeq (longer Reads). Users can modify all parameters in the vars file.
-  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${F_PRIM} -u -${FETRIM:=$MS_F_TRIM} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/primer_sort/{name}_${j}_Paired_1.fastq  ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_1.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
+  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${F_PRIM} -u -${FETRIM:=$MS_F_TRIM} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/primer_sort/{name}_${j1}_Paired_1.fastq  ${OUT}/QC/cutadapt_fastq/${j1}_qcPaired_1.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
   echo "check"
   echo "reverse..."
   # use cut adapt to search 5' end of reverse reads for reverse primers.  These are then sorted by primer name.  We do an additional trimming step analagous to the trimming step in the dada2 tutorial.  Because these a reverse reads an tend to be lower quality we only trim  50 bp from the end by default for the MiSeq (longer Reads). Users can modify all parameters in the vars file.
-  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${R_PRIM}  -u -${RETRIM:=$MS_R_TRIM} -o ${OUT}/QC/cutadapt_fastq/primer_sort/{name}_${j}_Paired_2.fastq   ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_2.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
+  ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${R_PRIM}  -u -${RETRIM:=$MS_R_TRIM} -o ${OUT}/QC/cutadapt_fastq/primer_sort/{name}_${j2}_Paired_2.fastq   ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
   echo "check"
-  rm ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_1.fastq # remove intermediate files
-  rm ${OUT}/QC/cutadapt_fastq/${j}_qcPaired_2.fastq # remove intermediate files
+  rm ${OUT}/QC/cutadapt_fastq/${j1}_qcPaired_1.fastq # remove intermediate files
+  rm ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq # remove intermediate files
+
+  # Update filename_pairs with new locations
+  metabarcode="$( ls -l | grep -o '>.*' ${FP:=$FP_PATH}  | cut -c 2- | tr '\n' ' ' )"
+  updated_filename_pairs+=("${OUT}/QC/cutadapt_fastq/primer_sort/${metabarcode}_${j1}_Paired_1.fastq,${OUT}/QC/cutadapt_fastq/primer_sort/${metabarcode}_${j2}_Paired_2.fastq")
+  # Now, replace the original filename_pairs with the updated_filename_pairs
+  filename_pairs=("${updated_filename_pairs[@]}")
 done
 date
 ###
@@ -260,13 +349,14 @@ date
 mkdir -p ${OUT}/Run_info
 mkdir -p ${OUT}/Run_info/run_scripts
 
-metabarcodes="$( ls -l | grep -o '>.*' ${FP:=$FP_PATH}  | cut -c 2- | tr '\n' ' ' )"
+metabarcode="$( ls -l | grep -o '>.*' ${FP:=$FP_PATH} | cut -c 2- | tr '\n' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' )"
 
-echo ${metabarcodes}
+
+echo ${metabarcode}
 
 echo " "
 echo "Checking that Paired reads are still paired:"
-for j in ${metabarcodes}
+for j in ${metabarcode}
 do
   echo " "
   echo ${j} "..."
@@ -284,12 +374,12 @@ do
     mkdir -p ${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/
     
     echo ${OUT}/QC/cutadapt_fastq/primer_sort/${j}_*_Paired_1.fastq
-    for st in `ls ${OUT}/QC/cutadapt_fastq/primer_sort/${j}_*_Paired_1.fastq`
-	  do
-      st2=${st%*_Paired_1.fastq}
-      k=${st2#${OUT}/QC/cutadapt_fastq/primer_sort/}
+    for pair in "${filename_pairs[@]}"
+    do
+      echo "Processing pair: $pair"
+      IFS=',' read -r forward_file reverse_file <<< "$pair"
       # For each sample and each metabarcode, this python script checks to see if the forward and reverse files have read pairs, or singleton F or R reads.  Reads are then sorted into the directories generated above.
-      python ${DB}/scripts/check_paired.py ${OUT}/QC/cutadapt_fastq/primer_sort/${k}_Paired_1.fastq ${OUT}/QC/cutadapt_fastq/primer_sort/${k}_Paired_2.fastq ${OUT}/${j}/${j}_sort_by_read_type/paired ${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/ ${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/
+      python ${DB}/scripts/check_paired.py $forward_file $reverse_file ${OUT}/${j}/${j}_sort_by_read_type/paired ${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/ ${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/
       echo ${k} "...check!"
      done
      date
