@@ -16,8 +16,8 @@ MILEN=""
 FETRIM=""
 RETRIM=""
 MINTIMES_ASV=""
-PHIX_REF="/opt/bbmap/resources/phix174_ill.ref.fa.gz"
-CONTAMINANTS="/opt/bbmap/resources/adapters.fa"
+PHIX_REF="/usr/local/bin/resources/phix174_ill.ref.fa.gz"
+CONTAMINANTS="/usr/local/bin/resources/adapters.fa"
 
 while getopts "h?:i:o:d:f:r:g?:c:p:q:m:x:y:b:t:" opt; do
     case $opt in
