@@ -175,6 +175,14 @@ readarray -t filename_pairs < <(awk -F',' '
         }
     }
     NR > 1 {
+        # Replace all "-" with "_" in the forward and reverse reads filenames
+        gsub("-", "_", $f_col);
+        gsub("-", "_", $r_col);
+
+        # Change file extension from "fq.gz" to "fastq.gz"
+        sub(/fq\.gz$/, "fastq.gz", $f_col);
+        sub(/fq\.gz$/, "fastq.gz", $r_col);
+
         print $f_col, $r_col;
     }
 ' "$METADATA")
