@@ -230,9 +230,11 @@ do
 
   # Update filename_pairs with new locations
   updated_filename_pairs+=("${OUT}/QC/fastq/${forward_file_mod},${OUT}/QC/fastq/${reverse_file_mod}")
-  # Now, replace the original filename_pairs with the updated_filename_pairs
-  filename_pairs=("${updated_filename_pairs[@]}")
 done
+
+# Now, replace the original filename_pairs with the updated_filename_pairs
+filename_pairs=("${updated_filename_pairs[@]}")
+updated_filename_pairs=() # empty array
 date
 
 ###
@@ -335,11 +337,12 @@ do
   rm ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq # remove intermediate files
 
   # Update filename_pairs with new locations
-  metabarcode="$( ls -l | grep -o '>.*' ${FP:=$FP_PATH}  | cut -c 2- | tr '\n' ' ' )"
+  metabarcode="$( ls -l | grep -o '>.*' ${FP:=$FP_PATH} | cut -c 2- | tr '\n' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' )"
   updated_filename_pairs+=("${OUT}/QC/cutadapt_fastq/primer_sort/${metabarcode}_${j1}_Paired_1.fastq,${OUT}/QC/cutadapt_fastq/primer_sort/${metabarcode}_${j2}_Paired_2.fastq")
-  # Now, replace the original filename_pairs with the updated_filename_pairs
-  filename_pairs=("${updated_filename_pairs[@]}")
 done
+# Now, replace the original filename_pairs with the updated_filename_pairs
+filename_pairs=("${updated_filename_pairs[@]}")
+updated_filename_pairs=()
 date
 ###
 
