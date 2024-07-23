@@ -183,6 +183,10 @@ readarray -t filename_pairs < <(awk -F',' '
         sub(/fq\.gz$/, "fastq.gz", $f_col);
         sub(/fq\.gz$/, "fastq.gz", $r_col);
 
+        # Append fastq.gz if it doesnt end with it
+        if ($f_col !~ /fastq\.gz$/) $f_col = $f_col ".fastq.gz";
+        if ($r_col !~ /fastq\.gz$/) $r_col = $r_col ".fastq.gz";
+
         print $f_col, $r_col;
     }
 ' "$METADATA")
@@ -271,7 +275,7 @@ sed -i "s/R_adapt/R_adapt_nextera/" ${OUT}/Run_info/cutadapt_primers_and_adapter
 echo "" >> ${OUT}/Run_info/cutadapt_primers_and_adapters/G_Reverse_adapter.txt
 cat ${OUT}/Run_info/cutadapt_primers_and_adapters/G_truseq_Reverse_adapter.txt >> ${OUT}/Run_info/cutadapt_primers_and_adapters/G_Reverse_adapter.txt
 
-python ${DB}/scripts/anacapa_format_primers_cutadapt.py ${FP:=$FP_PATH} ${RP:=$RP_PATH} ${OUT}/Run_info/cutadapt_primers_and_adapters  # given your adapter and primer sets, make cutadapt readable fasta files for trimming adapter / primer reads
+python3 ${DB}/scripts/anacapa_format_primers_cutadapt.py ${FP:=$FP_PATH} ${RP:=$RP_PATH} ${OUT}/Run_info/cutadapt_primers_and_adapters  # given your adapter and primer sets, make cutadapt readable fasta files for trimming adapter / primer reads
 
 # now use the formated cutadapt primer file to trim fastq reads
 mkdir -p ${OUT}/QC/fastp_cleaned
@@ -389,8 +393,12 @@ do
     do
       echo "Processing pair: $pair"
       IFS=',' read -r forward_file reverse_file <<< "$pair"
+      echo "$forward_file $reverse_file"
+      # Remove everything after first space in ID row
+      sed -i 's/^\(@[^ ]*\) .*/\1/' $forward_file
+      sed -i 's/^\(@[^ ]*\) .*/\1/' $reverse_file
       # For each sample and each metabarcode, this python script checks to see if the forward and reverse files have read pairs, or singleton F or R reads.  Reads are then sorted into the directories generated above.
-      python ${DB}/scripts/check_paired.py $forward_file $reverse_file ${OUT}/${j}/${j}_sort_by_read_type/paired ${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/ ${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/
+      python3 ${DB}/scripts/check_paired.py $forward_file $reverse_file ${OUT}/${j}/${j}_sort_by_read_type/paired ${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/ ${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/
       echo ${k} "...check!"
      done
      date

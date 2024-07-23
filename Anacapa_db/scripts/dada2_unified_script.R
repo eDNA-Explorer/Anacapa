@@ -69,11 +69,11 @@ if(paired_or_not == "paired") {
 
 # Run the filtering step ------
 if(paired_or_not == "paired") {
-  filtered_seqs <- filterAndTrim(fnFs, filtered_seqs_name, fnRs, filtered_seqs_name_R, minLen = 10,
+  filtered_seqs <- filterAndTrim(fnFs, filtered_seqs_name, fnRs, filtered_seqs_name_R, minLen = 25,
                                  maxN=0, maxEE=c(2,2), truncQ=0, rm.phix=TRUE,
                                  compress=F,matchIDs=TRUE, multithread=TRUE) # On Windows set multithread=FALSE
 } else {
-  filtered_seqs <- filterAndTrim(fnFs, filtered_seqs_name, minLen = 10,
+  filtered_seqs <- filterAndTrim(fnFs, filtered_seqs_name, minLen = 25,
                                  maxN=0, maxEE=c(2), truncQ=0, rm.phix=TRUE,
                                  compress=TRUE, multithread=TRUE) # On Windows set multithread=FALSE
 
