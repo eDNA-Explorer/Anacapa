@@ -129,9 +129,9 @@ if __name__ == "__main__":
       os.makedirs(path_to_reverses)
 
     if in1.endswith('.gz'): 
-    	outSuffix='.fastq.gz'
+        outSuffix='.fastq.gz'
     else:
-    	outSuffix='.fastq'
+        outSuffix='.fastq'
 
     # Write the output files
     with myopen(path_to_pairds+os.path.basename(in1).replace(outSuffix,"") + "_pairs_R1" + outSuffix, "w") as out1:
@@ -141,11 +141,11 @@ if __name__ == "__main__":
 
                 while not (s1_finished and s2_finished):
                     try:
-                        s1 = seq1.next()
+                        s1 = next(seq1)
                     except:
                         s1_finished = True
                     try:
-                        s2 = seq2.next()
+                        s2 = next(seq2)
                     except:
                         s2_finished = True
 
