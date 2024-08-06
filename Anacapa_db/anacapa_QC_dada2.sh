@@ -206,7 +206,7 @@ for file in "$IN"/*; do
 
     # If the modified filename is different, create a symbolic link
     if [[ "$filename" != "$modified_filename" ]]; then
-        ln -s "$file" "$IN/$modified_filename"
+        mv "$IN/$filename" "$IN/$modified_filename"
     fi
 done
 
