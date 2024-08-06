@@ -191,6 +191,25 @@ readarray -t filename_pairs < <(awk -F',' '
     }
 ' "$METADATA")
 
+# Ensure all files in $IN match the format
+# no dashes and end in .fastq.gz
+for file in "$IN"/*; do
+    # Extract the filename from the full path
+    filename=$(basename "$file")
+
+    # Perform the same modifications as in the awk command
+    modified_filename=${filename//-/_}
+    modified_filename=${modified_filename/fq.gz/fastq.gz}
+    if [[ $modified_filename != *.fastq.gz ]]; then
+        modified_filename="${modified_filename}.fastq.gz"
+    fi
+
+    # If the modified filename is different, create a symbolic link
+    if [[ "$filename" != "$modified_filename" ]]; then
+        ln -s "$file" "$IN/$modified_filename"
+    fi
+done
+
 declare -a updated_filename_pairs
 for pair in "${filename_pairs[@]}"
 do
