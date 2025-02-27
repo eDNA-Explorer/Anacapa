@@ -66,7 +66,7 @@ esac
 
 if [ "${HELP}" = "TRUE" ]
 then
-  printf "<<< Anacapa: Sequence QC and ASV Parsing >>>\n\nThe purpose of these script is to process raw fastq or fastq.gz files from an Illumina HiSeq or MiSeq.  It removes 3' and 5' sequencing artifacts and 5' metabarcode primers (cutadapt), removes low quality base pairs and short reads (fastX-toolkit), sorts reads by 3' metabarcode primers prior to trimming (cutadapt), and uses dada2 to denoise, dereplicate, merge and remove chimeric reads\n\n	For successful implementation \n		1. Make sure you have all of the dependencies and correct paths in the anacapa_config.sh file\n		2. Add the Metabarcode locus specific CRUX reference libraries to the Anacapa_db folder\n		3. All parameters can be modified using the arguments below.  Alternatively, all parameters can be altered in the anacapa_vars.sh folder\n\nArguments:\n- Required for either mode:\n	-i	path to .fastq.gz files, if files are already compressed use flag -g (see below)\n	-o	path to output directory\n	-d	path to Anacapa_db\n	-t	Illumina Platform: HiSeq (2 x 150) or MiSeq ( >= 2 x 250)\n    \n- Optional:\n 	-u	If running on an HPC (e.g. UCLA's Hoffman2 cluster), this is your username: e.g. eecurd\n 	-f	path to file with forward primers in fasta format \n    		e.g.	>16s\n    			GTGYCAGCMGCCGCGGTAA\n			>18S\n			GTACACACCGCCCGTC\n	-r	path to file with forward primers in fasta format \n    		e.g. 	>16s\n    			GGACTACNVGGGTWTCTAAT\n    			>18S\n			TGATCCTTCTGCAGGTTCACCTAC\n	-g	If .fastq read are not compressed: -g (no argument need)\n	-c	To modify the allowed cutadapt error for 3' adapter and 5' primer adapter trimming: 0.0 to 1.0 (default 0.3)\n	-p	To modify the allowed cutadapt error 3' primer sorting and trimming: 0.0 to 1.0 (default 0.3)\n	-q	To modify the minimum quality score allowed: 0 - 40 (default 35)\n	-m	To modify the minimum length after quality trimming: 0 - 300 (default 100)\n	-x	To modify the additional 5' trimming of forward reads: 0 - 300 (default HiSeq 10, default MiSeq 20)\n	-y	To modify the additional 5' trimming of reverse reads: 0 - 300 (default HiSeq 25, default MiSeq 50)\n	-b	To modify the number of occurrences required to keep an ASV: 0 - any integer (default 0)\n	-e	File path to a list of minimum length(s) reqired for paired F and R reads to overlap \n		(length of the locus - primer length + 20 bp). The user should take into account variability in amplicon \n		region (e.g.The amplicon size for 18S 1389f-1510r is ~260 +/- 50 bp) and make appropriate allowances.\n		e.g.	LENGTH_16S="235"\n			LENGTH_18S="200"\n	-k	Path to file with alternate HPC job submission parameters:  \n		default file = ~/Anacapa_db/scripts/Hoffman2_HPC_header.sh\n		modifiable template file = ~/Anacapa_db/scripts/anacapa_qsub_templates.sh\n\n\n-Other:\n	-h	Shows program usage then quits\n\n\n\n"
+  printf "<<< Anacapa: Sequence QC and ASV Parsing >>>\n\nThe purpose of these script is to process raw fastq or fastq.gz files from an Illumina HiSeq or MiSeq.  It removes 3' and 5' sequencing artifacts and 5' metabarcode primers (cutadapt), removes low quality base pairs and short reads (fastX-toolkit), sorts reads by 3' metabarcode primers prior to trimming (cutadapt), and uses dada2 to denoise, dereplicate, merge and remove chimeric reads\n\n	For successful implementation \n		1. Make sure you have all of the dependencies and correct paths in the anacapa_config.sh file\n		2. Add the Metabarcode locus specific CRUX reference libraries to the Anacapa_db folder\n		3. All parameters can be modified using the arguments below.  Alternatively, all parameters can be altered in the anacapa_vars.sh folder\n\nArguments:\n- Required for either mode:\n	-i	path to .fastq.gz files, if files are already compressed use flag -g (see below)\n	-o	path to output directory\n	-d	path to Anacapa_db\n	-t	Illumina Platform: HiSeq (2 x 150) or MiSeq ( >= 2 x 250)\n    \n- Optional:\n 	-u	If running on an HPC (e.g. UCLA's Hoffman2 cluster), this is your username: e.g. eecurd\n 	-f	path to file with forward primers in fasta format \n    		e.g.	>16s\n    			GTGYCAGCMGCCGCGGTAA\n			>18S\n			GTACACACCGCCCGTC\n	-r	path to file with forward primers in fasta format \n    		e.g. 	>16s\n    			GGACTACNVGGGTWTCTAAT\n    			>18S\n			TGATCCTTCTGCAGGTTCACCTAC\n	-g	If .fastq read are not compressed: -g (no argument need)\n	-c	To modify the allowed cutadapt error for 3' adapter and 5' primer adapter trimming: 0.0 to 1.0 (default 0.3)\n	-p	To modify the allowed cutadapt error 3' primer sorting and trimming: 0.0 to 1.0 (default 0.3)\n	-q	To modify the minimum quality score allowed: 0 - 40 (default 35)\n	-m	To modify the minimum length after quality trimming: 0 - 300 (default 100)\n	-x	To modify the additional 5' trimming of forward reads: 0 - 300 (default HiSeq 10, default MiSeq 20)\n	-y	To modify the additional 5' trimming of reverse reads: 0 - 300 (default HiSeq 25, default MiSeq 50)\n	-b	To modify the number of occurrences required to keep an ASV: 0 - any integer (default 0)\n	-e	File path to a list of minimum length(s) reqired for paired F and R reads to overlap \n		(length of the locus - primer length + 20 bp). The user should take into account variability in amplicon \n		region (e.g.The amplicon size for 18S 1389f-1510r is ~260 +/- 50 bp) and make appropriate allowances.\n		e.g.	LENGTH_16S="235"\n			LENGTH_18S="200"\n	-k	Path to file with alternate HPC job submission parameters:  \n		default file = ~/Anacapa_db/scripts/Hoffman2_HPC_header.sh\n		modifiable template file = ~/Anacapa_db/scripts/anacapa_qsub_templates.sh\n\n-Other:\n	-h	Shows program usage then quits\n\n\n\n"
   exit
 else
   echo ""
@@ -149,6 +149,14 @@ suffix2=R2_001.fastq.gz
 mkdir -p ${OUT}
 mkdir -p ${OUT}/Run_info
 mkdir -p ${OUT}/Run_info/run_logs
+mkdir -p ${OUT}/Run_info/intermediate_files
+mkdir -p ${OUT}/Run_info/intermediate_files/fastp
+mkdir -p ${OUT}/Run_info/intermediate_files/bbduk
+mkdir -p ${OUT}/Run_info/intermediate_files/cutadapt
+mkdir -p ${OUT}/Run_info/intermediate_files/paired_reads
+mkdir -p ${OUT}/Run_info/intermediate_files/unpaired_reads
+mkdir -p ${OUT}/Run_info/intermediate_files/filtered_fastq
+mkdir -p ${OUT}/Run_info/intermediate_files/dada2_output
 mkdir -p ${OUT}/QC
 mkdir -p ${OUT}/QC/fastq
 
@@ -334,7 +342,12 @@ do
         --length_required ${MILEN:=$MIN_LEN} \
         --html \
         --json
-  # remove intermediate files
+        
+  # Copy fastp reports to Run_info directory
+  cp ${OUT}/QC/fastp_logs/fastp_report.html ${OUT}/Run_info/intermediate_files/fastp/${j1}_${j2}_fastp_report.html
+  cp ${OUT}/QC/fastp_logs/fastp_report.json ${OUT}/Run_info/intermediate_files/fastp/${j1}_${j2}_fastp_report.json
+  
+  # Remove original files after keeping copies
   rm ${forward_file} ${reverse_file}
   
   # bbmap processing for further quality control
@@ -347,14 +360,28 @@ do
           minlen=50 \
           maxns=1 \
           -Xmx4g stats=${OUT}/QC/bbduk_logs/bbmap_stats.txt
-  # remove intermediate files
+          
+  # Copy bbduk stats to Run_info directory
+  cp ${OUT}/QC/bbduk_logs/bbmap_stats.txt ${OUT}/Run_info/intermediate_files/bbduk/${j1}_${j2}_bbmap_stats.txt
+  
+  # Save a copy of the fastp outputs before removing them
+  cp ${OUT}/QC/fastp_cleaned/${j1}_clean_1.fastq.gz ${OUT}/Run_info/intermediate_files/fastp/${j1}_clean_1.fastq.gz
+  cp ${OUT}/QC/fastp_cleaned/${j2}_clean_2.fastq.gz ${OUT}/Run_info/intermediate_files/fastp/${j2}_clean_2.fastq.gz
+  
+  # Remove intermediate files
   rm ${OUT}/QC/fastp_cleaned/${j1}_clean_1.fastq.gz ${OUT}/QC/fastp_cleaned/${j2}_clean_2.fastq.gz
   # chop off the 5' adapter and 3' adapter and primer combo (reverse complemented)
   # this step removes all primers and adapters with the exception of the 5' forward and reverse primers.  These are needed in a later step to sort reads by primer set.  Leaving 3' primers and 5' or 3' adapters can affect read merging and taxonomic assignment.
   # this cutadapt command allows a certain amount of error/missmatch (-e) between the query (seqeuncing read) and the primer and adapter.  It searches for and trims off all of the 5' forward adapter (-g) and the 3' reverse complement reverse primer / reverse complement reverse adapter (-a) or the 5' reverse adapter (-G) and the 3' reverse complement forward primer / reverse complement forward adapter (-A).  It processes read pairs, and results in two files one for each read pair.
   ${CUTADAPT} -e ${CTADE:=$ERROR_QC1} -g ${F_ADAPT} -a ${Rrc_PRIM_ADAPT} -G ${R_ADAPT} -A ${Frc_PRIM_ADAPT} --minimum-length 1 -o ${OUT}/QC/cutadapt_fastq/${j1}_qcPaired_1.fastq -p ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq ${OUT}/QC/bbduk_cleaned/${j1}_clean_1.fastq.gz ${OUT}/QC/bbduk_cleaned/${j2}_clean_2.fastq.gz >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
-  rm ${OUT}/QC/bbduk_cleaned/${j1}_clean_1.fastq.gz # remove intermediate files
-  rm ${OUT}/QC/bbduk_cleaned/${j2}_clean_2.fastq.gz # remove intermediate files
+  
+  # Save a copy of the bbduk outputs before removing them
+  cp ${OUT}/QC/bbduk_cleaned/${j1}_clean_1.fastq.gz ${OUT}/Run_info/intermediate_files/bbduk/${j1}_clean_1.fastq.gz
+  cp ${OUT}/QC/bbduk_cleaned/${j2}_clean_2.fastq.gz ${OUT}/Run_info/intermediate_files/bbduk/${j2}_clean_2.fastq.gz
+  
+  # Remove intermediate files
+  rm ${OUT}/QC/bbduk_cleaned/${j1}_clean_1.fastq.gz
+  rm ${OUT}/QC/bbduk_cleaned/${j2}_clean_2.fastq.gz
   # sort by metabarcode but run additional trimming.  It makes a differnce in merging reads in dada2.  Trimming varies based on sequencing platform.
   echo "forward..."
    # use cut adapt to search 5' end of forward reads for forward primers.  These are then sorted by primer name.  We do an additional trimming step analagous to the trimming step in the dada2 tutorial.  Because these a forward reads an tend to be higher quality we only trim  20 bp from the end by default for the MiSeq (longer Reads). Users can modify all parameters in the vars file.
@@ -364,8 +391,17 @@ do
   # use cut adapt to search 5' end of reverse reads for reverse primers.  These are then sorted by primer name.  We do an additional trimming step analagous to the trimming step in the dada2 tutorial.  Because these a reverse reads an tend to be lower quality we only trim  50 bp from the end by default for the MiSeq (longer Reads). Users can modify all parameters in the vars file.
   ${CUTADAPT} -e ${PCTADE:=$ERROR_PS} -g ${R_PRIM}  -u -${RETRIM:=$MS_R_TRIM} -o ${OUT}/QC/cutadapt_fastq/primer_sort/{name}_${j2}_Paired_2.fastq   ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq >> ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt
   echo "check"
-  rm ${OUT}/QC/cutadapt_fastq/${j1}_qcPaired_1.fastq # remove intermediate files
-  rm ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq # remove intermediate files
+  
+  # Save a copy of the cutadapt outputs before removing them
+  cp ${OUT}/QC/cutadapt_fastq/${j1}_qcPaired_1.fastq ${OUT}/Run_info/intermediate_files/cutadapt/${j1}_qcPaired_1.fastq
+  cp ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq ${OUT}/Run_info/intermediate_files/cutadapt/${j2}_qcPaired_2.fastq
+  
+  # Copy the cutadapt report
+  cp ${OUT}/Run_info/cutadapt_out/cutadapt-report.txt ${OUT}/Run_info/intermediate_files/cutadapt/cutadapt-report.txt
+  
+  # Remove intermediate files
+  rm ${OUT}/QC/cutadapt_fastq/${j1}_qcPaired_1.fastq
+  rm ${OUT}/QC/cutadapt_fastq/${j2}_qcPaired_2.fastq
 
   # Update filename_pairs with new locations
   metabarcode="$( ls -l | grep -o '>.*' ${FP:=$FP_PATH} | cut -c 2- | tr '\n' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' )"
@@ -419,6 +455,27 @@ do
       # For each sample and each metabarcode, this python script checks to see if the forward and reverse files have read pairs, or singleton F or R reads.  Reads are then sorted into the directories generated above.
       python3 ${DB}/scripts/check_paired.py $forward_file $reverse_file ${OUT}/${j}/${j}_sort_by_read_type/paired ${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/ ${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/
       echo ${k} "...check!"
+      
+      # Copy the paired and unpaired read outputs to the Run_info directory
+      # Extract the base filenames without paths
+      f_base=$(basename $forward_file)
+      r_base=$(basename $reverse_file)
+      
+      # Copy paired reads if they exist
+      if [ -f "${OUT}/${j}/${j}_sort_by_read_type/paired/${f_base%.*}_pairs_R1.fastq" ]; then
+        cp "${OUT}/${j}/${j}_sort_by_read_type/paired/${f_base%.*}_pairs_R1.fastq" "${OUT}/Run_info/intermediate_files/paired_reads/${j}_${f_base%.*}_pairs_R1.fastq"
+      fi
+      if [ -f "${OUT}/${j}/${j}_sort_by_read_type/paired/${r_base%.*}_pairs_R2.fastq" ]; then
+        cp "${OUT}/${j}/${j}_sort_by_read_type/paired/${r_base%.*}_pairs_R2.fastq" "${OUT}/Run_info/intermediate_files/paired_reads/${j}_${r_base%.*}_pairs_R2.fastq"
+      fi
+      
+      # Copy unpaired reads if they exist
+      if [ -f "${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/${f_base%.*}_singles.fastq" ]; then
+        cp "${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/${f_base%.*}_singles.fastq" "${OUT}/Run_info/intermediate_files/unpaired_reads/${j}_${f_base%.*}_singles.fastq"
+      fi
+      if [ -f "${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/${r_base%.*}_singles.fastq" ]; then
+        cp "${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/${r_base%.*}_singles.fastq" "${OUT}/Run_info/intermediate_files/unpaired_reads/${j}_${r_base%.*}_singles.fastq"
+      fi
      done
      date
    fi
@@ -453,7 +510,52 @@ do
   date
   ${RUNNER} ${OUT}/Run_info/run_scripts/${j}_dada2_R_job.sh
   date
+  
+  # Save a copy of the dada2 run scripts to the intermediate files
+  mkdir -p ${OUT}/Run_info/intermediate_files/dada2_scripts
+  cp ${OUT}/Run_info/run_scripts/${j}_dada2_paired_job.sh ${OUT}/Run_info/intermediate_files/dada2_scripts/
+  cp ${OUT}/Run_info/run_scripts/${j}_dada2_F_job.sh ${OUT}/Run_info/intermediate_files/dada2_scripts/
+  cp ${OUT}/Run_info/run_scripts/${j}_dada2_R_job.sh ${OUT}/Run_info/intermediate_files/dada2_scripts/
+  
+  # Copy filtered fastq files from dada2 processing
+  echo "Copying dada2 filtered fastq files to Run_info directory"
+  
+  # Copy filtered paired reads
+  if [ -d "${OUT}/${j}/${j}_sort_by_read_type/paired/filtered" ]; then
+    mkdir -p ${OUT}/Run_info/intermediate_files/filtered_fastq/${j}_paired
+    cp ${OUT}/${j}/${j}_sort_by_read_type/paired/filtered/*_filt.fastq.gz ${OUT}/Run_info/intermediate_files/filtered_fastq/${j}_paired/ 2>/dev/null || true
+  fi
+  
+  # Copy filtered unpaired forward reads
+  if [ -d "${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/filtered" ]; then
+    mkdir -p ${OUT}/Run_info/intermediate_files/filtered_fastq/${j}_unpaired_F
+    cp ${OUT}/${j}/${j}_sort_by_read_type/unpaired_F/filtered/*_filt.fastq.gz ${OUT}/Run_info/intermediate_files/filtered_fastq/${j}_unpaired_F/ 2>/dev/null || true
+  fi
+  
+  # Copy filtered unpaired reverse reads
+  if [ -d "${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/filtered" ]; then
+    mkdir -p ${OUT}/Run_info/intermediate_files/filtered_fastq/${j}_unpaired_R
+    cp ${OUT}/${j}/${j}_sort_by_read_type/unpaired_R/filtered/*_filt.fastq.gz ${OUT}/Run_info/intermediate_files/filtered_fastq/${j}_unpaired_R/ 2>/dev/null || true
+  fi
+  
+  # Copy dada2 output files
+  echo "Copying dada2 output files to Run_info directory"
+  mkdir -p ${OUT}/Run_info/intermediate_files/dada2_output/${j}
+  cp ${OUT}/${j}/${j}dada2_out/*.fasta ${OUT}/Run_info/intermediate_files/dada2_output/${j}/ 2>/dev/null || true
+  cp ${OUT}/${j}/${j}dada2_out/*.txt ${OUT}/Run_info/intermediate_files/dada2_output/${j}/ 2>/dev/null || true
+  
+  # Copy dada2 log files
+  if [ -d "${OUT}/Run_info/dada2_out" ]; then
+    mkdir -p ${OUT}/Run_info/intermediate_files/dada2_output/logs
+    cp -r ${OUT}/Run_info/dada2_out/* ${OUT}/Run_info/intermediate_files/dada2_output/logs/ 2>/dev/null || true
+  fi
  fi
 done
+
+# Create a completion marker file with run information
+echo "Anacapa QC and dada2 pipeline completed at $(date)" > ${OUT}/Run_info/QC_completion.log
+echo "Input directory: ${IN}" >> ${OUT}/Run_info/QC_completion.log
+echo "Output directory: ${OUT}" >> ${OUT}/Run_info/QC_completion.log
+echo "Metabarcodes processed: ${metabarcode}" >> ${OUT}/Run_info/QC_completion.log
 
 echo "All done"
